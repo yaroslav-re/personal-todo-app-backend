@@ -1,9 +1,19 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 app.use(cors());
 app.use(express.static("build"));
+const url = `mongodb+srv://yarik:${process.env.password}@cluster1-lm71m.mongodb.net/phoneDB?retryWrites=true&w=majority`;
+mongoose.connect(url);
+
+const todoSchema = new mongoose.Schema({
+  content: String,
+  date: Date,
+  important: Boolean,
+});
+const Todo = mongoose.model("Todo", todoSchema);
 
 let todos = [
   {
@@ -18,7 +28,7 @@ let todos = [
     id: 2,
     title: "Workout",
     content: "Go to swimming pool",
-    date: "2022-1-17T18:39:34.091Z",
+    date: "1657039172000",
     important: 2,
     done: true,
   },
@@ -26,7 +36,7 @@ let todos = [
     id: 3,
     title: "Friend",
     content: "Go to friend's house",
-    date: "2022-1-17T19:20:14.298Z",
+    date: "1657211972000",
     important: 3,
     done: false,
   },
@@ -47,7 +57,9 @@ app.get("/", (request, response) => {
 });
 
 app.get("/api/todos", (request, response) => {
-  response.json(todos);
+  Todo.find({}).then((todos) => {
+    response.json(todos);
+  });
 });
 
 app.get("/api/todos/:id", (request, response) => {
@@ -66,6 +78,15 @@ app.delete("/api/todos/:id", (request, response) => {
   const id = Number(request.params.id);
   todos = todos.filter((todo) => todo.id !== id);
   response.status(204).end();
+});
+
+app.post("/api/todos/:id", (request, response) => {
+  // todos = todos.push()
+  console.log(
+    "request!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ",
+    request.data,
+  );
+  response.status(204).end("success");
 });
 
 const PORT = process.env.PORT || 3001;
