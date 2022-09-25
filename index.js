@@ -2,45 +2,21 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 app.use(cors());
 app.use(express.static("build"));
-const url = `mongodb+srv://yarik:${process.env.password}@cluster1-lm71m.mongodb.net/phoneDB?retryWrites=true&w=majority`;
+
+const url = `mongodb+srv://yarik:${process.env.REACT_APP_PASSWORD}@cluster1-lm71m.mongodb.net/phoneDB?retryWrites=true&w=majority`;
 mongoose.connect(url);
 
 const todoSchema = new mongoose.Schema({
   content: String,
   date: Date,
   important: Boolean,
+  importance: Number,
 });
 const Todo = mongoose.model("Todo", todoSchema);
-
-let todos = [
-  {
-    id: 1,
-    title: "Meeting",
-    content: "Go home",
-    date: "1654409145000",
-    important: 1,
-    done: true,
-  },
-  {
-    id: 2,
-    title: "Workout",
-    content: "Go to swimming pool",
-    date: "1657039172000",
-    important: 2,
-    done: true,
-  },
-  {
-    id: 3,
-    title: "Friend",
-    content: "Go to friend's house",
-    date: "1657211972000",
-    important: 3,
-    done: false,
-  },
-];
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -80,13 +56,21 @@ app.delete("/api/todos/:id", (request, response) => {
   response.status(204).end();
 });
 
-app.post("/api/todos/:id", (request, response) => {
-  // todos = todos.push()
-  console.log(
-    "request!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ",
-    request.data,
-  );
-  response.status(204).end("success");
+app.post("/api/todos", (request, response) => {
+  const body = request.body;
+  // if (body.content === undefined) {
+  //   return response.status(400).json({ error: "content missing" });
+  // }
+  const todo = new Todo({
+    content: body.content,
+    date: new Date(),
+    important: body.important,
+    importance: body.importance,
+  });
+
+  todo.save().then((savedTodo) => {
+    response.json(savedTodo);
+  });
 });
 
 const PORT = process.env.PORT || 3001;
