@@ -1,22 +1,13 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const mongoose = require("mongoose");
+
 require("dotenv").config();
+const Todo = require("./models/Todo");
 
 app.use(cors());
 app.use(express.static("build"));
-
-const url = `mongodb+srv://yarik:${process.env.REACT_APP_PASSWORD}@cluster1-lm71m.mongodb.net/phoneDB?retryWrites=true&w=majority`;
-mongoose.connect(url);
-
-const todoSchema = new mongoose.Schema({
-  content: String,
-  date: Date,
-  important: Boolean,
-  importance: Number,
-});
-const Todo = mongoose.model("Todo", todoSchema);
+app.use(express.json());
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -39,15 +30,14 @@ app.get("/api/todos", (request, response) => {
 });
 
 app.get("/api/todos/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const todo = todos.find((todo) => {
-    return todo.id === id;
-  });
-  if (todo) {
-    response.json(todo);
-  } else {
-    response.status(404).end();
-  }
+  const todo = Todo.findById(request.params.id).then((todo) =>
+    response.json(todo),
+  );
+  // if (todo) {
+  //   response.json(todo);
+  // } else {
+  //   response.status(404).end();
+  // }
 });
 
 app.delete("/api/todos/:id", (request, response) => {
@@ -62,7 +52,9 @@ app.post("/api/todos", (request, response) => {
   //   return response.status(400).json({ error: "content missing" });
   // }
   const todo = new Todo({
-    content: body.content,
+    id: body.id,
+    title: body.title,
+    description: body.description,
     date: new Date(),
     important: body.important,
     importance: body.importance,
@@ -73,7 +65,7 @@ app.post("/api/todos", (request, response) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT}`);
 });
