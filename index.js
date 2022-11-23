@@ -3,7 +3,7 @@ const app = express();
 const cors = require("cors");
 
 require("dotenv").config();
-const Todo = require("./models/Todo");
+const Todo = require("./models/todo");
 
 app.use(cors());
 app.use(express.static("build"));
@@ -69,3 +69,7 @@ const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT}`);
 });
+
+// починить delete запрос и post запрос
+
+// почитать про bcrypt и про hash password
