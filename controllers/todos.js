@@ -1,44 +1,72 @@
 const todosRouter = require("express").Router();
 const Todo = require("../models/todo");
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
 
-todosRouter.get("/", (request, response) => {
-  response.send("<h1>Hello</h1>");
+const getTokenFrom = (request) => {
+  const authorisation = request.get("authorisation");
+  if (authorisation && authorisation.toLowerCase().startsWith("bearer ")) {
+    return authorisation.substring(7);
+  }
+
+  return null;
+};
+
+todosRouter.get("/", async (request, response) => {
+  const todos = await Todo.find({}).populate("user", { username: 1, name: 1 });
+  response.json(todos);
 });
 
-todosRouter.get("/api/todos", (request, response) => {
-  Todo.find({}).then((todos) => {
-    response.json(todos);
-  });
+todosRouter.get("/:id", async (request, response) => {
+  const todo = await Todo.findById(request.params.id);
+  if (todo) {
+    response.json(todo.toJSON());
+  } else {
+    response.status(404).end();
+  }
 });
 
-todosRouter.get("/api/todos/:id", (request, response) => {
-  const todo = Todo.findById(request.params.id).then((todo) =>
-    response.json(todo),
-  );
-});
-
-todosRouter.delete("/api/todos/:id", (request, response) => {
-  const id = Number(request.params.id);
-  todos = todos.filter((todo) => todo.id !== id);
+todosRouter.delete("/:id", async (request, response) => {
+  await Todo.findByIdAndRemove(request.params.id);
   response.status(204).end();
 });
 
-todosRouter.post("/api/todos", (request, response) => {
+todosRouter.post("/", async (request, response) => {
   const body = request.body;
-  // if (body.content === undefined) {
-  //   return response.status(400).json({ error: "content missing" });
-  // }
+  const token = getTokenFrom(request);
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+  const user = await User.findById(body.userId);
+
   const todo = new Todo({
-    id: body.id,
     title: body.title,
-    description: body.description,
+    content: body.content,
     date: new Date(),
     important: body.important,
     importance: body.importance,
+    user: user._id,
   });
 
-  todo.save().then((savedTodo) => {
-    response.json(savedTodo);
-  });
+  const savedTodo = await todo.save();
+  user.todos = user.todos.concat(savedTodo._id);
+  await user.save();
+
+  response.status(201);
 });
+
+todosRouter.put("/:id", async (request, response, next) => {
+  const body = request.body;
+  const todo = {
+    content: body.content,
+    important: body.important,
+    importance: body.importance,
+  };
+  Todo.findByIdAndUpdate(request.params.id, todo, { new: true })
+    .then((updatedTodo) => {
+      response.json(updatedTodo);
+    })
+    .catch((error) => next(error));
+});
+
+module.exports = todosRouter;
+
+// перенастроить запросы на front-е в соответствии с новым backend-ом

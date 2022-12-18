@@ -3,10 +3,14 @@ const mongoose = require("mongoose");
 const todoSchema = new mongoose.Schema({
   id: String,
   title: String,
-  description: String,
+  content: String,
   date: Date,
   important: Boolean,
   importance: Number,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 todoSchema.set("toJSON", {
