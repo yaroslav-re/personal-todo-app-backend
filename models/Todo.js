@@ -3,7 +3,11 @@ const mongoose = require("mongoose");
 const todoSchema = new mongoose.Schema({
   id: String,
   title: String,
-  content: String,
+  content: {
+    type: String,
+    minLength: 3,
+    required: true,
+  },
   date: Date,
   important: Boolean,
   importance: Number,

@@ -68,5 +68,3 @@ todosRouter.put("/:id", async (request, response, next) => {
 });
 
 module.exports = todosRouter;
-
-// перенастроить запросы на front-е в соответствии с новым backend-ом
