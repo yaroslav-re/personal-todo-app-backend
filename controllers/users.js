@@ -1,9 +1,15 @@
 const bcrypt = require("bcrypt");
+const { response } = require("../App");
 const usersRouter = require("express").Router();
 const User = require("../models/user");
 
+// usersRouter.get("/", async (request, response) => {
+//   const users = await User.find({}).populate("todos",);
+//   response.json(users);
+// });
+
 usersRouter.get("/", async (request, response) => {
-  const user = await User.find({}).populate("todos", { content: 1, date: 1 });
+  const users = await User.find({});
   response.json(users);
 });
 
