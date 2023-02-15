@@ -35,3 +35,5 @@ app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
 
 module.exports = app;
+
+// посмотреть unit tests react
