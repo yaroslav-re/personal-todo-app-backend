@@ -18,5 +18,6 @@ test("reverse of releveler", () => {
   expect(result).toBe("releveler");
 });
 
-// посмотреть unit tests react
-// побробовать починить создание todos
+// дз - посмотреть unit tests react
+
+// нужно сделать log out
