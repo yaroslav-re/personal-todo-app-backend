@@ -13,6 +13,12 @@ const getTokenFrom = (request) => {
 };
 
 todosRouter.get("/", async (request, response) => {
+  const token = getTokenFrom(request);
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "авторизуйся" });
+  }
+
   const todos = await Todo.find({}).populate("user", { username: 1, name: 1 });
   response.json(todos);
 });
@@ -35,12 +41,15 @@ todosRouter.post("/", async (request, response) => {
   const body = request.body;
   const token = getTokenFrom(request);
   const decodedToken = jwt.verify(token, process.env.SECRET);
-  const user = await User.findById(body.userId);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "неправильный токен" });
+  }
+  const user = await User.findById(decodedToken.id);
 
   const todo = new Todo({
     title: body.title,
     content: body.content,
-    date: new Date(),
+    date: body.date,
     important: body.important,
     importance: body.importance,
     user: user._id,
@@ -50,7 +59,7 @@ todosRouter.post("/", async (request, response) => {
   user.todos = user.todos.concat(savedTodo._id);
   await user.save();
 
-  response.status(201);
+  response.json(savedTodo);
 });
 
 todosRouter.put("/:id", async (request, response, next) => {
